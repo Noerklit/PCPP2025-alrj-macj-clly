@@ -36,7 +36,39 @@ We've defined our critical section to contain the incrementation of count, i.e t
 ## Exercise 1.2
 
 ### 1
-Program is located in Printer.java
+```java
+class Printer {
+
+    public void print () {
+        System.out.print("-");
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException exn) {}
+        System.out.print("|");
+    }
+
+    public static void main(String[] args) {
+        var printer = new Printer();
+        
+        var t1 = new Thread(() -> {
+            while (true) {
+                printer.print();
+            }
+        });
+        var t2 = new Thread(() -> {
+            while (true) {
+                printer.print();
+            }
+        });
+
+        t1.start();t2.start();
+        try { t1.join(); t2.join(); }
+        catch (InterruptedException exn) {
+            System.out.println("Some thread was interrupted");
+        }
+    }
+}
+```
 
 ### 2
 ```java
@@ -178,6 +210,42 @@ So if we allocate a thread to draw to the screen and another to perform backend 
 - Exploitation
     Metro system, there are multiple doors to enter the metro not just one, they also need to communicate with the doors on the platform.
 - Inherent 
-    GUIs such as web applications
+    GUIs such as web applications.
 - Hidden
-    Operating systems
+    Operating systems.
+
+
+## Exercise 1.5
+### 1
+macOS Sequoia 15.5
+
+### 2
+Albert:
+- macOS Sequoia 15.5
+- 10 cores
+- 16 gb main memory
+- L1 Cache 2.9 MB
+- L2 Cache 28 MB
+- L3 Cache 24 MB
+
+Clara:
+- macOS Sequoia 15.6
+- 10 cores
+- 16 gb main memory
+- L1 Cache 2.9 MB
+- L2 Cache 28 MB
+- L3 Cache 24 MB
+
+Mads:
+- Windows 11 Home OS build 26100.4652
+- 8 Cores 16 Threads
+- 16 gb main memory
+- L1 Cache 512 KB (per core)
+- L2 Cache 4 MB (per core)
+- L3 Cache 16 MB (shared)
+
+### 3
+- Albert = 1041 nanoseconds.
+- Clara = 
+- Mads = 
+

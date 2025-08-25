@@ -246,6 +246,6 @@ Mads:
 
 ### 3
 - Albert = 1041 nanoseconds.
-- Clara = 
-- Mads = 
+- Clara = 1041 nanoseconds.
+- Mads = 1400 nanoseconds.
 

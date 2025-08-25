@@ -1,6 +1,7 @@
 // For week 1
 // alrj@itu.dk * 2025-25-08
 // macj@itu.dk * 2025-25-08
+// clly@itu.dk * 2025-25-08
 package exercises01;
 
 import java.util.concurrent.locks.Lock;

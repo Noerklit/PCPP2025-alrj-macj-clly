@@ -1,12 +1,17 @@
 // For week 1
-// sestoft@itu.dk * 2014-08-21
-// raup@itu.dk * 2021-08-27
+// alrj@itu.dk * 2025-25-08
+// macj@itu.dk * 2025-25-08
 package exercises01;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TestLongCounterExperiments {
 
     LongCounter lc = new LongCounter();
     int counts = 10_000_000;
+
+    Lock lock = new ReentrantLock();
 
     public TestLongCounterExperiments() {
 
@@ -34,7 +39,9 @@ public class TestLongCounterExperiments {
         private long count = 0;
 
         public void increment() {
+            lock.lock();
             count = count + 1;
+            lock.unlock();
         }
 
         public long get() {

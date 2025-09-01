@@ -10,6 +10,7 @@
 
 If you use Windows PowerShell to run Grade, make sure that it interprets the `Pmainclass` flag correctly by using quotation marks (`""`) around it.
 For instance, to run the code for the first week above, you should modify the command above as follows:
+Remember to be in the folder for that week so week01exercises for the below
 
 `$ gradle "-PmainClass=exercises01.TestLongCounterExperiments" run`.
 

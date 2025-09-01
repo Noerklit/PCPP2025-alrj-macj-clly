@@ -56,3 +56,7 @@ methods wait() and notifyAll()
 ## Exercise 2.2
 
 ### 1
+We do observe that mi.value is invisible to the t thread, so it keeps looping even though the mi value is not zero.
+It can run forever because the main thread sets the mi value in its core register which the t thread cannot access. Therefore to the t thread the mi value still seems to be zero.
+
+### 2

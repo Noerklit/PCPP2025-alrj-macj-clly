@@ -19,8 +19,11 @@ class LongCounter {
 
     public void increment() {
         lock.lock();
-        count = count + 1;
-        lock.unlock();
+        try {
+            count = count + 1;
+        } finally {
+            lock.unlock();
+        }
     }
 
     public long get() {
@@ -119,9 +122,12 @@ class Printer {
         System.out.print("-");
         try {
             Thread.sleep(50);
-        } catch (InterruptedException exn) {}
-        System.out.print("|");
-        lock.unlock();
+        } catch (InterruptedException exn) {} 
+        finally {
+            System.out.print("|");
+            lock.unlock();
+        }
+        
     }
 
     public static void main(String[] args) {
@@ -188,10 +194,13 @@ public class CounterThreads2Covid {
         public void run() {
             for (int i = 0; i < PEOPLE; i++) {
                 lock.lock();
-                if (counter < MAX_PEOPLE_COVID) {
-                    counter++;
+                try {
+                    if (counter < MAX_PEOPLE_COVID) {
+                        counter++;
+                    }
+                } finally {
+                    lock.unlock();
                 }
-                lock.unlock();
             }
         }
     }

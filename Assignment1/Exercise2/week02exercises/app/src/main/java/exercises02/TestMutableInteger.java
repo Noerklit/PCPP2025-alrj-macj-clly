@@ -7,13 +7,18 @@ public class TestMutableInteger {
     public static void main(String[] args) {
         final MutableInteger mi = new MutableInteger();
         Thread t = new Thread(() -> {
-                while (mi.get() == 0)        // Loop while zero
-                    {/* Do nothing*/ }
-                System.out.println("I completed, mi = " + mi.get());
+                try {
+                    while (mi.get() == 0)        // Loop while zero
+                        {/* Do nothing*/ }
+                    System.out.println("I completed, mi = " + mi.get());
+                } catch (InterruptedException e) { e.printStackTrace();}
         });
         t.start();
         try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); }
-        mi.set(42);
+        try {
+            mi.set(42);
+
+        } catch (InterruptedException e){ e.printStackTrace();}
         System.out.println("mi set to 42, waiting for thread ...");
         try { t.join(); } catch (InterruptedException e) { e.printStackTrace(); }
         System.out.println("Thread t completed, and so does main");
@@ -22,11 +27,11 @@ public class TestMutableInteger {
 
 class MutableInteger {
     // WARNING: Not ready for usage by concurrent programs
-    private int value = 0;
-    public synchronized void set(int value) throws InterruptedException {
+    private volatile int value = 0;
+    public  void set(int value) throws InterruptedException {
         this.value = value;
     }
-    public synchronized int get() throws InterruptedException {
+    public  int get() throws InterruptedException {
         return value;
     }
 }

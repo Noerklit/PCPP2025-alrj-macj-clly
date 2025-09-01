@@ -119,7 +119,9 @@ class Printer {
 
     public void print () {
         lock.lock();
-        System.out.print("-");
+        try {
+            System.out.print("-");
+        }
         try {
             Thread.sleep(50);
         } catch (InterruptedException exn) {} 

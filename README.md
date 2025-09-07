@@ -1,3 +1,14 @@
+# For TA's
+## Assignment 1
+Answers to the exercises from week 1 is found in the [answers.md file](Assignment1\Exercise1\week01exercises\answers.md)
+located at: Assignment1/Exercise1/week01exercises
+
+Answers to exercises from week 2 can be found in the
+[answers.md file](Assignment1\Exercise2\week02exercises\answers.md)
+located at: Assignment1/Exercise2/week02exercises
+
+
+# For group members
 ## Running the exercises in Gradle
 
 1. Clone the course repository `$ git clone https://github.itu.dk/jst/PCPP2025-public.git`

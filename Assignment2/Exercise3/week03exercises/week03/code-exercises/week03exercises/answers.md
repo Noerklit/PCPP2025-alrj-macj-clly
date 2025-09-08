@@ -162,4 +162,9 @@ $$
 Due to the monitor rule, no data reces are present as either t1 or t2 has to wait for the other thread to unlock.
 
 ### 8
-If count is volatile it would not be data race free. Each thread would still be able to read count at the same time.
+If count is volatile it would be data race free, but not race condition free. Each thread would still be able to read count at the same time. The threads can read count and write to the temp value at the same time. If there has been written to count volatile ensures us we get the right value of count. 
+$$
+HB = t1(1)  \rightarrow t2(1) \rightarrow t1(2)  \rightarrow t2(2)
+$$
+
+t1(1) and t2(1) are read actions with subesequent write actions. Read and write operations are not a

@@ -3,8 +3,13 @@
 
 package exercises03;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class CountingThreads {
     int count;
+    Lock lock = new ReentrantLock();
+     
 
     public CountingThreads() throws InterruptedException {
         count = 0;
@@ -23,8 +28,10 @@ public class CountingThreads {
 
     public class CountingThread extends Thread {
         public void run() {
+            lock.lock();
             int temp = count;
-            count = temp + 1;            
+            count = temp + 1;   
+            lock.unlock();         
         }
     }
 

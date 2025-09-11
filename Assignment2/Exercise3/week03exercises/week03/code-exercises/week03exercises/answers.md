@@ -252,28 +252,34 @@ The class is correctly synchronized, becasue to be correctly syncronized means t
 ## 3.3
 ### 1
 ``` Java
-    int x;
+    int x; // init(x)
 
     public TestVisibility() throws InterruptedException {
-        x=0; // init(x)
+        x=0; // 1
         Thread t1 = new Thread(() -> {
-                while(x==0) // 1
-                    {/*Do nothing*/} // 2
-                System.out.println("t1: x="+x); // 3
+                while(x==0) // 2
+                    {/*Do nothing*/} // 3
+                System.out.println("t1: x="+x); // 4
         });
         t1.start(); // start(t1)
-        x=42; // 4
-        System.out.println("Main: x="+x); // 5
+        x=42; // 5
+        System.out.println("Main: x="+x); // 6
     }
 ```
-$$
-HB = m(init(x)) \rightarrow m(start(t1)) \\
-\rightarrow t1(1) \rightarrow t1(2) \\
-\rightarrow m(4) \rightarrow m(5) \rightarrow t1(3)
-$$
+Ask TA's about whether it is the first option or the second. Our logic goes like this: We have to reorder the spawning of the thread and the write to x, as we otherwise have a situation, wherein the main thread writes to its local cache, never notifying t1 of the updated value, resulting in t1 reading a stale value of x, thus running forever. So should the reordering be of the pair m(5) and start(t1) or the pair m(5) t1(2)?
 
-$$
-HB = m(init(x)) \rightarrow m(start(t1)) \\
-\rightarrow t1(1) \rightarrow t1(2) \\
-\rightarrow m(4) \rightarrow t1(3) \rightarrow m(5) 
-$$
+The pair of actions that must be ordered by the happens-before is m(5) and t1(2). m(5) (the write to x) must happen before t1(2) (the read to x), in order to prevent the infinite loop.
+
+The pair of actions that must be ordered by the happens-before is m(5) and start(t1). m(5) (the write to x) must happen before start(t1) (Spawning of t1), in order to prevent the infinite loop.
+
+### 2
+- Program order rule: As action t1(2) and action m(5) are not executed by the same thread, this program does adhere to the program order rule. 
+- Monitor rule: No locks exists in the program, therefore it does not adhere to the monitor rule.
+- Volatile rule: The variable x is not marked as volatile, this program does not adhere to the volatile rule.
+- Default init rule: Our action a in this case is x=42, but for the init rule to apply this would have to be int x;
+- Final field init rule: Same reasoning as for the default init rule. 
+- Thread start rule: Action a is not a call to start, therefore the program does not adhere.
+- Thread termination rule: action b is not a call to join, such a call does not exist in the program, therefore the program does not adhere to this rule.
+- Transitive rule: This does not apply, since our actions are not in the same happens-before. 
+
+Since none of the happens-before rules apply, we can conclude that our pair of actions are not ordered by happens-before in all executions of the program.

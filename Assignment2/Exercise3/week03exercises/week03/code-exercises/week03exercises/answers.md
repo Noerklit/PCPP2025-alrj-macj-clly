@@ -162,9 +162,45 @@ $$
 Due to the monitor rule, no data reces are present as either t1 or t2 has to wait for the other thread to unlock.
 
 ### 8
-If count is volatile it would be data race free, but not race condition free. Each thread would still be able to read count at the same time. The threads can read count and write to the temp value at the same time. If there has been written to count volatile ensures us we get the right value of count. 
+If count is volatile it would be data race free, but not race condition free. Each thread would still be able to read count at the same time. The threads can read count and write to the temp value at the same time. If there has been written to count volatile ensures us we get the right value of count.
 $$
 HB = t1(1)  \rightarrow t2(1) \rightarrow t1(2)  \rightarrow t2(2)
 $$
 
-t1(1) and t2(1) are read actions with subesequent write actions. Read and write operations are not a
+## 3.2
+
+### 1
+```java
+    public class StringSet {
+
+        private final List<String> list = new ArrayList<String>();
+
+        public synchronized int findOrAdd(String s) { 
+            int ret = list.indexOf(s); // (init(ret))
+            if (ret == -1) {      // 1
+                list.add(s); // 2
+            }
+            return ret; // 3
+        }
+
+        public int find(String s) {
+            return list.indexOf(s); 
+        }
+    }
+
+    s = new StringSet();
+
+        Thread t1 = new Thread(() -> {
+                s.findOrAdd("PCPP"); //
+        });
+        Thread t2 = new Thread(() -> {
+                s.find("PCPP");
+        });
+
+        t1.start(); //
+        t2.start(); //
+```
+
+
+### 2
+The class is correctly synchronized, becasue to be correctly syncronized means that the program has to be data race free. With both methods being synchronized the program is data race free. Beceause we are using an intrinsic lock which means that both find or findOrAdd cannot run at the same time.

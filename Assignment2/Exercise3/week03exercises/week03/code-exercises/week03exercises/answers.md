@@ -255,14 +255,25 @@ The class is correctly synchronized, becasue to be correctly syncronized means t
     int x;
 
     public TestVisibility() throws InterruptedException {
-        x=0;
+        x=0; // init(x)
         Thread t1 = new Thread(() -> {
-                while(x==0)
-                    {/*Do nothing*/}
-                System.out.println("t1: x="+x);
+                while(x==0) // 1
+                    {/*Do nothing*/} // 2
+                System.out.println("t1: x="+x); // 3
         });
-        t1.start();
-        x=42;
-        System.out.println("Main: x="+x);
+        t1.start(); // start(t1)
+        x=42; // 4
+        System.out.println("Main: x="+x); // 5
     }
 ```
+$$
+HB = m(init(x)) \rightarrow m(start(t1)) \\
+\rightarrow t1(1) \rightarrow t1(2) \\
+\rightarrow m(4) \rightarrow m(5) \rightarrow t1(3)
+$$
+
+$$
+HB = m(init(x)) \rightarrow m(start(t1)) \\
+\rightarrow t1(1) \rightarrow t1(2) \\
+\rightarrow m(4) \rightarrow t1(3) \rightarrow m(5) 
+$$

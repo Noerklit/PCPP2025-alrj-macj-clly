@@ -7,6 +7,10 @@ Answers to exercises from week 2 can be found in the
 [answers.md file](Assignment1\Exercise2\week02exercises\answers.md)
 located at: Assignment1/Exercise2/week02exercises
 
+## Assignment 2
+Answers to the exercises from week 1 is found in the [answers.md file](Assignment2\Exercise3\week03exercises\week03\code-exercises\week03exercises\answers.md)
+located at: Assignment2\Exercise3\week03exercises\week03\code-exercises\week03exercises
+
 
 # For group members
 ## Running the exercises in Gradle

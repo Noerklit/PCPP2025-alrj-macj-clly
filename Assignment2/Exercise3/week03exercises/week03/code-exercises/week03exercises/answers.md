@@ -173,7 +173,7 @@ $$
 ```java
     public class StringSet {
 
-        private final List<String> list = new ArrayList<String>();
+        private final List<String> list = new ArrayList<String>(); // (init(list))
 
         public synchronized int findOrAdd(String s) { 
             int ret = list.indexOf(s); // (init(ret))
@@ -184,23 +184,85 @@ $$
         }
 
         public int find(String s) {
-            return list.indexOf(s); 
+            return list.indexOf(s); // 4
         }
     }
 
-    s = new StringSet();
+    s = new StringSet(); // init(s)
 
         Thread t1 = new Thread(() -> {
-                s.findOrAdd("PCPP"); //
+                s.findOrAdd("PCPP"); // 5
         });
         Thread t2 = new Thread(() -> {
-                s.find("PCPP");
+                s.find("PCPP"); // 6
         });
 
         t1.start(); //
         t2.start(); //
 ```
+$$
+HB^m_{po} = m(init(s)) \rightarrow m(start(t1)) \rightarrow m(start(t2)) \\
 
+HB^{t1}_{po} = t1(5) \rightarrow t1(init(ret)) \rightarrow t1(1) \rightarrow t1(2) \rightarrow t1(3) \\
+
+HB^{t2}_{po} = t2(6) \rightarrow t2(4)
+$$
+The above denotes the happens before for the program and its threads. There is a data race between t1(2) and t2(4), since there are no action pairs that relate them, ergo there is not Happens-Before set that contains them both. That means they are conflicting actions.
 
 ### 2
-The class is correctly synchronized, becasue to be correctly syncronized means that the program has to be data race free. With both methods being synchronized the program is data race free. Beceause we are using an intrinsic lock which means that both find or findOrAdd cannot run at the same time.
+```java
+    public class StringSet {
+
+        private final List<String> list = new ArrayList<String>(); // (init(list))
+
+        public synchronized int findOrAdd(String s) { 
+            int ret = list.indexOf(s); // (init(ret))
+            if (ret == -1) {      // 1
+                list.add(s); // 2
+            }
+            return ret; // 3
+        }
+
+        public synchronized int find(String s) {
+            return list.indexOf(s); // 4
+        }
+    }
+
+    s = new StringSet(); // init(s)
+
+        Thread t1 = new Thread(() -> {
+                s.findOrAdd("PCPP"); // 5
+        });
+        Thread t2 = new Thread(() -> {
+                s.find("PCPP"); // 6
+        });
+
+        t1.start(); //
+        t2.start(); //
+```
+$$
+HB = m(init(s)) \rightarrow m(start(t1)) \rightarrow m(start(t2)) \rightarrow \\ 
+t1(5) \rightarrow t1(init(ret) ) \rightarrow t1(1) \rightarrow t1(2) \rightarrow t1(3) \\ 
+\rightarrow t2(6) \rightarrow t2(4) \\
+$$
+
+The class is correctly synchronized, becasue to be correctly syncronized means that the program has to be data race free. With both methods being synchronized the program is data race free. Beceause we are using an intrinsic lock which means that both find or findOrAdd cannot run at the same time. Because of the introduction of the synchronized keyword, i.e lock to the find method, the monitor rule applies, results in us not having the conflicting action pair t1(2) and t2(4) no longer occurring at the same time, eliminating the data race. Note that a race condition is still present, in terms of which threads, reaches the lock first. 
+
+
+## 3.3
+### 1
+``` Java
+    int x;
+
+    public TestVisibility() throws InterruptedException {
+        x=0;
+        Thread t1 = new Thread(() -> {
+                while(x==0)
+                    {/*Do nothing*/}
+                System.out.println("t1: x="+x);
+        });
+        t1.start();
+        x=42;
+        System.out.println("Main: x="+x);
+    }
+```

@@ -79,7 +79,7 @@ Barrier does not allow us to control the amount of threads gaining access, so we
 ```java
 public class Person {
 
-    private static volatile AtomicLong next = null;
+    private static final AtomicLong next = new AtomicLong(0);
 
     public final long id;
     private volatile String name;
@@ -87,16 +87,11 @@ public class Person {
     private volatile String address;
 
     public Person() {
-        if (next == null) {
-            next = new AtomicLong(0);
-        }
         this.id = next.getAndIncrement();
     }
 
     public Person(long id) {
-        if (next == null) {
-            next = new AtomicLong(id);
-        }
+        next.compareAndSet(0, id);
         this.id = next.getAndIncrement();
     }
 
@@ -122,3 +117,27 @@ public class Person {
     }
 }
 ```
+### 2
+#### Class state
+We have 5 fields containing the class state.
+- id: The id of the person
+- name: The name of the person
+- zip: The zip code of the person
+- address: The address of the person
+- next: The current non colliding id
+
+
+#### Escaping
+All fields are private, except for id, but since it is final it does not allow modification.
+
+We do return references to strings, but since strings are immutable, we are not concerned with external modification.
+#### (Safe) publication
+We use either final, volatile or static to ensure the safe publication of the fields. Since the `next` counter is atomic we ensure that there is a happens before relation when initializing.
+
+#### Immutability
+Only the fields name, zip and address are mutable, but they're declared as volatile, so we ensure correct visibility.
+
+#### Mutual exclusion
+We utilize an intrinsic lock when getting or setting values in the Person object, this ensures that no threads receive stale data or any data races occur.
+
+

@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Person {
 
-    private static volatile AtomicLong next = null;
+    private static final AtomicLong next = new AtomicLong(0);
 
     public final long id;
     private volatile String name;
@@ -12,16 +12,11 @@ public class Person {
     private volatile String address;
 
     public Person() {
-        if (next == null) {
-            next = new AtomicLong(0);
-        }
         this.id = next.getAndIncrement();
     }
 
     public Person(long id) {
-        if (next == null) {
-            next = new AtomicLong(id);
-        }
+        next.compareAndSet(0, id);
         this.id = next.getAndIncrement();
     }
 

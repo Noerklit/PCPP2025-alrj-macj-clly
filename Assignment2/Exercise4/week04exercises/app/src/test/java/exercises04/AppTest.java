@@ -3,15 +3,69 @@
  */
 package exercises04;
 
+import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 public class AppTest {
-    @Test public void appHasAGreeting() {
-        assertNotNull("app should have a greeting", null);
+
+    @Test
+    public void BoundedBuffer_MultiThread_GetsHead() throws Exception {
+        BoundedBuffer<Integer> b = new BoundedBuffer<>(2);
+        var a = new AtomicInteger(0);
+
+        Thread t1 = new Thread(() -> {
+            try {
+                var val = b.take();
+                if (val == 2) {
+                    a.set(val);
+                }
+            } catch (Exception ex) {
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            try {
+                Thread.sleep(1000);
+                b.insert(2);
+                b.insert(3);
+            } catch (Exception ex) {
+            }
+        });
+        t1.start();
+        t2.start();
+        t1.join();
+        t2.join();
+        assert (a.get() == 2);
+        System.out.println(a.get());
     }
 
-    @Test public void test1() {
-        assert(1==2);
+    @Test
+    public void BoundedBuffer_MultiThread_NoDeadlocks() throws Exception {
+        var amountItems = 1000;
+        var amountThreads = 10;
+        var tList = new ArrayList<Thread>();
+        BoundedBuffer<Integer> b = new BoundedBuffer<>(amountItems);
+
+        for (int i = 0; i < amountThreads; i++) {
+            tList.add(new Thread(() -> {
+                try {
+                    for (int j = 0; j < amountItems / amountThreads; j++) {
+                        b.insert(j);
+                        b.take();
+                    }
+                } catch (Exception ex) {
+                }
+            }));
+        }
+
+        tList.forEach((t) -> t.start());
+        tList.forEach((t) -> {
+            try {
+                t.join();
+            } catch (InterruptedException ex) {
+            }
+        });
+        assert (b.isEmpty());
     }
 }

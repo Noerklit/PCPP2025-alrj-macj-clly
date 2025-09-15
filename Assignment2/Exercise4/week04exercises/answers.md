@@ -140,4 +140,38 @@ Only the fields name, zip and address are mutable, but they're declared as volat
 #### Mutual exclusion
 We utilize an intrinsic lock when getting or setting values in the Person object, this ensures that no threads receive stale data or any data races occur.
 
+### 3
+```java
+@Test
+public void Person_MultipleThreadCreating_CorrectIds() {
+    var amountPersons = 1000;
+    var amountThreads = 10;
+    var tList = new ArrayList<Thread>();
+    Map<Long, Person> dict = Collections.synchronizedMap(new HashMap<>());
+
+    for (int i = 0; i < amountThreads; i++) {
+        tList.add(new Thread(() -> {
+            try {
+                for (int j = 0; j < amountPersons / amountThreads; j++) {
+                    var person = new Person(1);
+                    dict.put(person.id, person);
+                }
+            } catch (Exception ex) {
+            }
+        }));
+    }
+
+    tList.forEach((t) -> t.start());
+    tList.forEach((t) -> {
+        try {
+            t.join();
+        } catch (InterruptedException ex) {
+        }
+    });
+
+    assert (new Person().id == 1001);
+    assert (dict.size() == 1000);
+}
+```
+
 

@@ -4,6 +4,9 @@
 package exercises04;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -67,5 +70,36 @@ public class AppTest {
             }
         });
         assert (b.isEmpty());
+    }
+
+    @Test
+    public void Person_MultipleThreadCreating_CorrectIds() {
+        var amountPersons = 1000;
+        var amountThreads = 10;
+        var tList = new ArrayList<Thread>();
+        Map<Long, Person> dict = Collections.synchronizedMap(new HashMap<>());
+
+        for (int i = 0; i < amountThreads; i++) {
+            tList.add(new Thread(() -> {
+                try {
+                    for (int j = 0; j < amountPersons / amountThreads; j++) {
+                        var person = new Person(1);
+                        dict.put(person.id, person);
+                    }
+                } catch (Exception ex) {
+                }
+            }));
+        }
+
+        tList.forEach((t) -> t.start());
+        tList.forEach((t) -> {
+            try {
+                t.join();
+            } catch (InterruptedException ex) {
+            }
+        });
+
+        assert (new Person().id == 1001);
+        assert (dict.size() == 1000);
     }
 }

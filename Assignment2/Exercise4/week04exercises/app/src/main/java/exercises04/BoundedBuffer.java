@@ -33,7 +33,7 @@ public class BoundedBuffer<T> implements BoundedBufferInteface<T> {
     @Override
     public void insert(T elem) throws Exception {
         size.acquire();
-        doLocked(()-> q.add(elem));
+        doLocked(() -> q.add(elem));
         items.release();
     }
 
@@ -44,5 +44,5 @@ public class BoundedBuffer<T> implements BoundedBufferInteface<T> {
         size.release();
         return ret;
     }
-    
+
 }

@@ -173,7 +173,7 @@ public void Person_MultipleThreadCreating_CorrectIds() {
     assert (dict.size() == 1000);
 }
 ```
-We did not oberseve any errors in running the program, i.e the test passes. 
+We did not observe any errors in running the program, i.e the test passes. 
 
 
 ### 4

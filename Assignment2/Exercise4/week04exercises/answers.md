@@ -173,5 +173,9 @@ public void Person_MultipleThreadCreating_CorrectIds() {
     assert (dict.size() == 1000);
 }
 ```
+We did not oberseve any errors in running the program, i.e the test passes. 
 
+
+### 4
+While we are not explicitly testing every method, we believe it is sufficient to say our program is thread-safe. This is because the only field that is not used through locks, is next, which is what we are testing in our program. Testing the rest of the methods, would simply be proving that locks work, which we believe they do. 
 

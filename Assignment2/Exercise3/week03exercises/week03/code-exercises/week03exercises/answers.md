@@ -75,6 +75,8 @@ HB^{6} = t2(1)  \rightarrow t1(1) \rightarrow t1(2)  \rightarrow t2(2)
 $$
 This set is not the same for all possible program execusions. As can be seen from the example above.
 
+The set is the same, but the outcome is different. The sets are the same as seen in the first part of the assignment.
+
 ### 3
 $$
 HB^1_{init} = \\
@@ -91,6 +93,11 @@ t1(2) \rightarrow m(join(t1)) \rightarrow t2(2)
 \rightarrow m(join(t2))  \\
 $$
 No, as can be seen in the example above.
+
+The set is the same for all possible program executions.
+$$
+HB = {m(start(t1)) \rightarrow  m(start(t2)) \rightarrow m(join(t1))\rightarrow m(join(t2)) }
+$$
 
 ### 4
 $$

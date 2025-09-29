@@ -11,12 +11,31 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
 
     // TODO: Add necessary field(s) for the class
     public boolean readerTryLock() {
-        // TODO 5.2.3
+        ReaderList rl = null;
+        Holders holder;
+        do {
+            holder = holders.get();
+            if (holder != null) {
+                if (holder.isWriterLock()) {
+                    return false;
+                }
+                rl = (ReaderList) holder;
+            }
+            rl = new ReaderList(rl);
+        } while (!holders.compareAndSet(holder, rl));
         return true;
     }
 
-    public void readerUnlock() {
-        // TODO 5.2.4
+    public void readerUnlock() throws RuntimeException {
+        ReaderList newRl;
+        Holders holder;
+        do {
+            holder = holders.get();
+            if (holder == null || !holder.isReader()) {
+                throw new RuntimeException();
+            }
+            newRl = ((ReaderList) holder).CloneRemoved();
+        } while (!holders.compareAndSet(holder, newRl));
     }
 
     public boolean writerTryLock() {
@@ -29,14 +48,15 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
         return true;
     }
 
-    public void writerUnlock() {
+    @Override
+    public void writerUnlock() throws RuntimeException {
         Holders holder;
         do {
             holder = holders.get();
-            if (holder.isReader()) {
+            if (holder == null || !holder.isWriter()) {
                 throw new RuntimeException();
             }
-        } while (!holders.compareAndSet(holder,));
+        } while (!holders.compareAndSet(holder, null));
     }
 
     // Challenging 5.2.7: You may add new methods
@@ -45,6 +65,10 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
         public abstract boolean isReader();
 
         public abstract boolean isWriter();
+
+        public abstract boolean isReaderList();
+
+        public abstract boolean isWriterLock();
     }
 
     private static class ReaderList extends Holders {
@@ -58,6 +82,26 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
             this.next = next;
         }
 
+        private ReaderList(Thread thread, ReaderList next) {
+            this.thread = thread;
+            this.next = next;
+        }
+
+        public ReaderList CloneRemoved() {
+            Thread t = Thread.currentThread();
+
+            if (thread == t && next == null) {
+                return null;
+            }
+            if (thread == t) {
+                return next.CloneRemoved();
+            }
+            if (next == null) {
+                return new ReaderList(thread, null);
+            }
+            return new ReaderList(thread, next.CloneRemoved());
+        }
+
         // TODO: contains
         // TODO: remove
         @Override
@@ -66,12 +110,25 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
             if (curr == thread) {
                 return true;
             }
+            if (next == null) {
+                return false;
+            }
             return next.isReader();
         }
 
         @Override
         public boolean isWriter() {
             return !isReader();
+        }
+
+        @Override
+        public boolean isReaderList() {
+            return true;
+        }
+
+        @Override
+        public boolean isWriterLock() {
+            return false;
         }
     }
 
@@ -91,6 +148,16 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
         @Override
         public boolean isWriter() {
             return thread == Thread.currentThread();
+        }
+
+        @Override
+        public boolean isReaderList() {
+            return false;
+        }
+
+        @Override
+        public boolean isWriterLock() {
+            return true;
         }
     }
 }

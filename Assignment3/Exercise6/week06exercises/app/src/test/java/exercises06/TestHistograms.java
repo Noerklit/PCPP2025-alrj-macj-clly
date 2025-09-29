@@ -21,8 +21,8 @@ public class TestHistograms {
         expected.start();
         expected.join();
 
-        Histogram sut = new Histogram1(span);
-        //Histogram sut = new CasHistogram(span);
+        //Histogram sut = new Histogram1(span);
+        Histogram sut = new CasHistogram(span);
 
         List<FactorCalc> cList = new LinkedList<>();
 

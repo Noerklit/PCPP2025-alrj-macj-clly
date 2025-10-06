@@ -4,6 +4,8 @@ package exercises07;
 // JUnit testing imports
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
@@ -46,4 +48,35 @@ class TestLockFreeStack {
     }
 
     // TODO: 7.2.3 - Test pop
+
+    @Test
+    public void TestPopLockFreeStack_ExpectPopSumToEqualActualSum() {
+        LockFreeStack<Integer> sut = new LockFreeStack<>();
+        int n = 500;
+        CyclicBarrier barrier = new CyclicBarrier(n + 1);
+        Integer expected = 0;
+        AtomicInteger actual = new AtomicInteger(0);
+
+        for (Integer i = 0; i < n; i++) {
+            Thread thread = new Thread(() -> {
+                try {
+                    barrier.await();
+                    Integer val = sut.pop();
+                    barrier.await();
+                    actual.getAndAdd(val);
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException ex) {
+                }
+            });
+            sut.push(i);
+            thread.start();
+            expected += i;
+        }
+
+        barrier.await();
+        barrier.await();
+        barrier.await();
+
+        assertEquals(expected, actual.get());
+    }
 }

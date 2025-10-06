@@ -60,3 +60,37 @@ B1 is because if the stack is empty, the head has been determined to be null, an
 B4 is because if successfully executed the top element will be popped from the stack.
 
 ## 7.2.2
+```java
+@Test
+public void TestPushLockFreeStack_ExpectedPushSumToBeActualSum() throws InterruptedException, BrokenBarrierException {
+    LockFreeStack<Integer> sut = new LockFreeStack<>();
+    int n = 500;
+    CyclicBarrier barrier = new CyclicBarrier(n + 1);
+    int expected = 0;
+    Integer actual = 0;
+
+    for (Integer i = 0; i < n; i++) {
+        final Integer tmp = i;
+        Thread thread = new Thread(() -> {
+            try {
+                barrier.await();
+                sut.push(tmp);
+                barrier.await();
+            } catch (InterruptedException | BrokenBarrierException ex) {
+            }
+        });
+        thread.start();
+        expected += i;
+    }
+
+    barrier.await();
+    barrier.await();
+
+    for (Integer curr = 0; curr != null; curr = sut.pop()) {
+        actual += curr;
+    }
+
+    assertEquals(expected, actual);
+
+}
+```

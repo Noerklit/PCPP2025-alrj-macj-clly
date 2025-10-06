@@ -2,58 +2,34 @@
 package exercises07;
 
 // JUnit testing imports
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Disabled;
-
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.Arguments;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-// Data structures imports
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-
-// Concurrency imports
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CyclicBarrier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class TestLockFreeStack {
 
     // The imports above are just for convenience, feel free add or remove imports
-
     // TODO: 7.2.2 - Test push
     @Test
-    public void TestPushLockFreeStack_ExpectedPushSumToBeActualSum() {
-        LockFreeStack sut = new LockFreeStack<>();
+    public void TestPushLockFreeStack_ExpectedPushSumToBeActualSum() throws InterruptedException, BrokenBarrierException {
+        LockFreeStack<Integer> sut = new LockFreeStack<>();
         int n = 500;
-        List<Thread> lt = new List<Thread>();
-        CyclicBarrier barrier = new CyclicBarrier(n+1);
+        CyclicBarrier barrier = new CyclicBarrier(n + 1);
         int expected = 0;
         Integer actual = 0;
 
-        for(Integer i = 0; i < n; i++) {
+        for (Integer i = 0; i < n; i++) {
+            final Integer tmp = i;
             Thread thread = new Thread(() -> {
-                barrier.await();
-                sut.push(i);
-                barrier.await();
+                try {
+                    barrier.await();
+                    sut.push(tmp);
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException ex) {
+                }
             });
-            lt.add(thread);
             thread.start();
             expected += i;
         }
@@ -61,7 +37,7 @@ class TestLockFreeStack {
         barrier.await();
         barrier.await();
 
-        for(Integer curr = 0; curr != null; curr = sut.pop()) {
+        for (Integer curr = 0; curr != null; curr = sut.pop()) {
             actual += curr;
         }
 

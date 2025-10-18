@@ -9,7 +9,6 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
 
     private final AtomicReference<Holders> holders = new AtomicReference<>();
 
-    // TODO: Add necessary field(s) for the class
     public boolean readerTryLock() {
         ReaderList rl = null;
         Holders holder;
@@ -102,8 +101,6 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
             return new ReaderList(thread, next.CloneRemoved());
         }
 
-        // TODO: contains
-        // TODO: remove
         @Override
         public boolean isReader() {
             Thread curr = Thread.currentThread();

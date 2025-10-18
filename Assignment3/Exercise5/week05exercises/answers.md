@@ -103,4 +103,29 @@ If release is called more times than aquire, which could happen if for example o
 
 ### 2
 
+```java
+@RepeatedTest(10)
+@DisplayName("Aquire more than c permits")
+public void aquireMoreThanCPermits() throws InterruptedException, BrokenBarrierException {
+    final int c = 10;
+    final int nThreads = c + 1;
+    final AtomicInteger threadsInCriticalSection = new AtomicInteger(0);
+    final CyclicBarrier barrier = new CyclicBarrier(nThreads + 1);
+    sImp = new SemaphoreImp(c);
 
+    sImp.release();
+    for (int i = 0; i < nThreads; i++) {
+        new Thread(() -> {
+            try {
+                barrier.await();
+                sImp.acquire();
+                threadsInCriticalSection.getAndIncrement();
+            } catch (InterruptedException | BrokenBarrierException e) {
+            }
+        }).start();
+    }
+    barrier.await();
+    assertEquals(c, threadsInCriticalSection.get());
+}
+```
+Since the main threads first releases the semaphore and then c+1 threads aquires the semaphore, the program should finish with c+1 threads in the critical section.

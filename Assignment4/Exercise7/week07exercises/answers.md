@@ -56,13 +56,9 @@ public void push(T value) {
 The linearization point for push is A3 because if successfully executed the element has been pushed to the stack.
 
 
-__I think this is wrong__
 The linearization points for pop are B1 & B4.
 B1 is because if the stack is empty, the head has been determined to be null, and will therefore return null.
 B4 is because if successfully executed the top element will be popped from the stack.
-__I think this is wrong__
-
-The linearization point for pop is B4 as that is when the pop operation takes effect.
 
 ## 7.2.2
 ```java

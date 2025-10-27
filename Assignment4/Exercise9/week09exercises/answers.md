@@ -193,4 +193,5 @@ countParallelN      15          2321421.1 ns    6900.24        128
 countParallelN      16          2322801.9 ns    5659.12        128
 ```
 
-These results match the results that we saw earlier, the lowest time is achieved at 4-5 cores.
+These results match the results that we saw earlier, the lowest time is achieved at 4-5 cores. The computation when run sequentially takes around 6000000 ns, so with the overhead of around 70000 ns when starting a thread, the overhead quickly becomes negliable. Since the computation is so large, it is very beneficial to parallelize the work, as can be seen in the results (time is halved with just two threads). If the computation was much smaller, parallelizing the work on several threads would end up being inefficient, since the cost of the threads would negate any performance gains. 
+Furthermore it can be seen that there is an optimal amount of threads spawned, as we can see that from 1 thread to 4 time is almost halved, but afterwards time slowly starts increasing again. 

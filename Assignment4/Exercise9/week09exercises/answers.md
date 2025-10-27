@@ -95,5 +95,102 @@ countParallelN      31          1947668.0 ns   11485.14        256
 countParallelN      32          1959469.3 ns    9275.67        256
 ```
 ## 9.3.2
+There is no real correlation between the number of threads on the computer and the threads used in the test. We expected there to be a strong correlation i.e. the more threads the better, but this does not seem to be the case.
 
+# Exercise 9.4
+## 9.4.1
+```java
+class PrimeCounter {
 
+    private int count = 0;
+
+    public synchronized void increment() {
+        count = count + 1;
+    }
+
+    public synchronized int get() {
+        return count;
+    }
+
+    public synchronized void add(int c) {
+        count += c;
+    }
+
+    public synchronized void reset() {
+        count = 0;
+    }
+}
+```
+## 9.4.2
+```
+Array Size: 5697
+# Occurences of ipsum :1430
+```
+## 9.4.3
+```
+Test Search                     6259268.2 ns   34940.97         64
+```
+## 9.4.4
+```
+private static int countParallelN(
+        String target,
+        String[] lineArr,
+        PrimeCounter lc,
+        int range,
+        int threadCount) {
+    final int perThread = range / threadCount;
+    Thread[] threads = new Thread[threadCount];
+    for (int t = 0; t < threadCount; t++) {
+        final int from = perThread * t,
+                to = (t + 1 == threadCount) ? range : perThread * (t + 1);
+        threads[t] = new Thread(() -> {
+            search(target, lineArr, from, to, lc);
+        });
+    }
+    for (int t = 0; t < threadCount; t++) {
+        threads[t].start();
+    }
+    try {
+        for (int t = 0; t < threadCount; t++) {
+            threads[t].join();
+        }
+    } catch (InterruptedException exn) {
+    }
+    return lc.get();
+}
+```
+We can verify that it works by running it beside the sequential search.
+```
+Array Size: 5697
+# Occurences of ipsum :1430
+# 4 Thread parrallel occurences of ipsum : 1430
+# 8 Thread parrallel occurences of ipsum : 1430
+```
+## 9.4.5
+```
+# OS:   Mac OS X; 15.6.1; aarch64
+# JVM:  Azul Systems, Inc.; 21.0.7
+# CPU:  null; 10 "cores"
+# Date: 2025-10-27T12:72:224+0100
+Array Size: 5697
+# Occurences of ipsum :1430
+Test Search                     6282171.6 ns   25164.53         64
+countParallelN       1          6387533.7 ns   15606.48         64
+countParallelN       2          3453727.4 ns   18704.50        128
+countParallelN       3          2475697.2 ns   15200.80        128
+countParallelN       4          1978866.0 ns   23461.33        128
+countParallelN       5          1915664.6 ns   10826.97        256
+countParallelN       6          2051472.9 ns   11325.02        128
+countParallelN       7          2186433.1 ns   11764.21        128
+countParallelN       8          2189692.0 ns    8268.58        128
+countParallelN       9          2262122.2 ns   38385.37        128
+countParallelN      10          2298177.0 ns    7544.53        128
+countParallelN      11          2290836.9 ns    9871.14        128
+countParallelN      12          2289186.8 ns   15158.45        128
+countParallelN      13          2309551.9 ns   13892.28        128
+countParallelN      14          2315018.2 ns   14462.09        128
+countParallelN      15          2321421.1 ns    6900.24        128
+countParallelN      16          2322801.9 ns    5659.12        128
+```
+
+These results match the results that we saw earlier, the lowest time is achieved at 4-5 cores.

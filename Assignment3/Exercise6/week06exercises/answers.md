@@ -17,8 +17,8 @@ public class CasHistogram implements Histogram {
     @Override
     public void increment(int bin) {
         int val;
-        AtomicInteger currBin = bins[bin];
         do {
+            AtomicInteger currBin = bins[bin]; // move it inside the loop
             val = currBin.get();
         } while (!currBin.compareAndSet(val, val + 1));
     }

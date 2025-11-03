@@ -5,11 +5,12 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadsAccountExperimentsMany {
 
   static final int N = 10;
-  static final int NO_TRANSACTION = 50000;
+  static final int NO_TRANSACTION = 5;
   static final int NO_THREADS = 10;
   static final Account[] accounts = new Account[N];
   static final Thread[] threads = new Thread[NO_THREADS];
@@ -31,6 +32,14 @@ public class ThreadsAccountExperimentsMany {
       int target = (source + rnd.nextInt(N - 2) + 1) % N; // make sure target <> source
       pool.submit(() -> doTransaction(new Transaction(amount, accounts[source], accounts[target])));
     }
+    pool.shutdown();
+    try {
+      if (pool.awaitTermination(20, TimeUnit.SECONDS)) {
+        System.out.println("All tasks completed");
+      } else {
+        System.out.println("Timeout elapsed before termination");
+      }
+    } catch (InterruptedException e) { e.printStackTrace();}
     // for( int i = 0; i<NO_THREADS; i++){
     // try{ (threads[i] = new Thread( () -> doNTransactions(NO_TRANSACTION)
     // )).start();}
@@ -43,10 +52,6 @@ public class ThreadsAccountExperimentsMany {
     // try {threads[i].join();} catch(Exception dummy){};
     // }
     // Loop below is just so it takes long enough for us to actually see a print statement from doTransaction
-    for (int i = 0; i < 2000000000; i++) {
-      int number = 1 * i;
-      int number2 = number * i;
-    }
   }
 
   private static void doNTransactions(int noTransactions) {

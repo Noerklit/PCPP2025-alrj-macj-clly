@@ -40,4 +40,27 @@ This is prevented with the min and max function, making sure that the account wi
     t.transfer();
   }
 ```
+## 10.1.4
+```java
+  public ThreadsAccountExperimentsMany() {
+    final ExecutorService pool = new ForkJoinPool(1);
+
+    for (int i = 0; i < N; i++) {
+      accounts[i] = new Account(i);
+    }
+    for (int i = 0; i < NO_TRANSACTION; i++) {
+      long amount = rnd.nextInt(5000) + 100;
+      int source = rnd.nextInt(N);
+      int target = (source + rnd.nextInt(N - 2) + 1) % N; // make sure target <> source
+      pool.submit(() -> doTransaction(new Transaction(amount, accounts[source], accounts[target])));
+    }
+    pool.shutdown();
+    try {
+      if (pool.awaitTermination(20, TimeUnit.SECONDS)) {
+        System.out.println("All tasks completed");
+      } else {
+        System.out.println("Timeout elapsed before termination");
+      }
+    } catch (InterruptedException e) { e.printStackTrace();}
+```
 

@@ -19,3 +19,25 @@ If another thread wants to transer from account 2 to 1 then it would lock 2 firs
 This is prevented with the min and max function, making sure that the account with the lowest id is always aquired first. So that the order of account synchronisation is always the same.
 
 ## 10.1.3
+```java
+  public ThreadsAccountExperimentsMany() {
+    final ExecutorService pool = new ForkJoinPool(1);
+
+    for (int i = 0; i < N; i++) {
+      accounts[i] = new Account(i);
+    }
+    for (int i = 0; i < NO_TRANSACTION; i++) {
+      long amount = rnd.nextInt(5000) + 100;
+      int source = rnd.nextInt(N);
+      int target = (source + rnd.nextInt(N - 2) + 1) % N; // make sure target <> source
+      pool.submit(() -> doTransaction(new Transaction(amount, accounts[source], accounts[target])));
+    }
+
+    private static void doTransaction(Transaction t) {
+    System.out.println(t);
+    System.out.println("YO");
+
+    t.transfer();
+  }
+```
+

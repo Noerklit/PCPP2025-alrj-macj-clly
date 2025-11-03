@@ -7,11 +7,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntToDoubleFunction;
 import benchmarking.Benchmark;
 
+
 class TestCASLockHistogram {
   public static void main(String[] args) {
+    int span = 30;
 
     // Create an object `histogramCAS` with your Histogram CAS implementation from week05
+    Histogram casHis = new CasHistogram(span);
+
     // Create an object `histogramLock` using the class in the file HistogramLocks
+    Histogram lockHis = new HistogramLocks(span);
     
     int noThreads= 16;
     int range= 100_000;	
@@ -19,11 +24,15 @@ class TestCASLockHistogram {
     for (int i= 1; i < noThreads; i++) {
       int threadCount= i;
       // Benchmark.Mark7( ... using a monitor
+        Benchmark.Mark7(String.format("countParallel Lock %2d", threadCount), 
+		      p -> countParallel(range, threadCount, lockHis));
     }
 
     for (int i= 1; i < noThreads; i++) {
       int threadCount= i;
       // Benchmark.Mark7( ... using CAS
+      Benchmark.Mark7(String.format("countParallel CAS %2d", threadCount), 
+		      p -> countParallel(range, threadCount, casHis));
     }
   }
   
@@ -42,7 +51,7 @@ class TestCASLockHistogram {
   }
 
   // Parallel execution of counting the number of primes for numbers in `range`
-    private static void countParallel(int range, int threadCount, Histogram h) {
+    private static int countParallel(int range, int threadCount, Histogram h) {
     final int perThread= range / threadCount;
     Thread[] threads= new Thread[threadCount];
     for (int t=0; t<threadCount; t= t+1) {
@@ -59,6 +68,7 @@ class TestCASLockHistogram {
       for (int t= 0; t<threadCount; t= t+1) 
         threads[t].join();
     } catch (InterruptedException exn) { }
+    return 0;
   }
     
   // Auxiliary method to print the histogram data

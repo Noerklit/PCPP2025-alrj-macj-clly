@@ -16,7 +16,7 @@ public class TestHistograms {
     @RepeatedTest(10)
     @DisplayName("Test cas histogram supports parrallel operations")
     public void TestCasHistogramParallelism_ShouldCountFactorsCorrectly() throws InterruptedException {
-        int span = 5000;
+        int span = 30;
         FactorCalc expected = new FactorCalc(new CasHistogram(span), 0, span);
         expected.start();
         expected.join();

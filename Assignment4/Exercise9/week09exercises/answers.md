@@ -131,7 +131,7 @@ Array Size: 5697
 Test Search                     6259268.2 ns   34940.97         64
 ```
 ## 9.4.4
-```
+```java
 private static int countParallelN(
         String target,
         String[] lineArr,

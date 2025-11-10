@@ -39,23 +39,18 @@ class ReadWriteCASLock implements SimpleRWTryLockInterface {
 
     public boolean writerTryLock() {
         Holders writer = new Writer();
-        do {
-            if (holders.get() != null) {
-                return false;
-            }
-        } while (!holders.compareAndSet(null, writer));
-        return true;
+        return holders.compareAndSet(null, writer);
     }
 
     @Override
     public void writerUnlock() throws RuntimeException {
         Holders holder;
-        do {
-            holder = holders.get();
-            if (holder == null || !holder.isWriter()) {
-                throw new RuntimeException();
-            }
-        } while (!holders.compareAndSet(holder, null));
+
+        holder = holders.get();
+        if (!holder.isWriter()) {
+            throw new RuntimeException();
+        }
+        holders.compareAndSet(holder, null);
     }
 
     // Challenging 5.2.7: You may add new methods

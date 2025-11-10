@@ -12,7 +12,7 @@
 ### Mark 7 measurements
 - Point creation 17.5 ns 0.20 16777216
 - Thread's work 1818.8 ns 22.87 262144
-- Thread create 666.4 ns 5.47 524288
+- Thread create 666.4 ns 5.47 524288    
 - Thread create start 95919.4 ns 766.45 4096
 - Thread create start join 195074.4 ns 1358.87       2048
 - ai value = 1070732704

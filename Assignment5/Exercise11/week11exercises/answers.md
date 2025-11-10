@@ -256,6 +256,76 @@ In parallel stream we can see it uses 5 threads. The parallel streams uses the F
 
 ## Exercise 11.3.2
 
+
+
+On Windows computer with 8 cores but 16 logical processors:
+=================================
+Using Sequential Stream
+=================================
+1 main
+2 main
+3 main
+4 main
+5 main
+6 main
+7 main
+8 main
+9 main
+10 main
+11 main
+12 main
+13 main
+14 main
+15 main
+16 main
+17 main
+18 main
+19 main
+20 main
+21 main
+22 main
+23 main
+24 main
+25 main
+26 main
+27 main
+28 main
+29 main
+30 main
+=================================
+Using Parallel Stream
+=================================
+20 main
+19 main
+22 main
+21 main
+17 main
+18 main
+16 main
+10 ForkJoinPool.commonPool-worker-1
+25 ForkJoinPool.commonPool-worker-2
+26 ForkJoinPool.commonPool-worker-2
+11 ForkJoinPool.commonPool-worker-1
+29 ForkJoinPool.commonPool-worker-5
+9 ForkJoinPool.commonPool-worker-1
+27 ForkJoinPool.commonPool-worker-5
+8 ForkJoinPool.commonPool-worker-1
+23 ForkJoinPool.commonPool-worker-1
+30 ForkJoinPool.commonPool-worker-4
+1 ForkJoinPool.commonPool-worker-7
+12 ForkJoinPool.commonPool-worker-4
+3 ForkJoinPool.commonPool-worker-4
+2 ForkJoinPool.commonPool-worker-6
+28 main
+5 ForkJoinPool.commonPool-worker-3
+4 ForkJoinPool.commonPool-worker-6
+7 ForkJoinPool.commonPool-worker-13
+6 ForkJoinPool.commonPool-worker-3
+24 ForkJoinPool.commonPool-worker-2
+14 ForkJoinPool.commonPool-worker-5
+15 ForkJoinPool.commonPool-worker-10
+13 ForkJoinPool.commonPool-worker-1
+
 ## Exercise 11.3.3
 
 # Exercise 11.4

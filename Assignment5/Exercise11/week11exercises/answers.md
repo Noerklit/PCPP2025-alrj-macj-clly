@@ -256,9 +256,76 @@ In parallel stream we can see it uses 5 threads. The parallel streams uses the F
 
 ## Exercise 11.3.2
 
+### On Mac with 8 cores
 
+=================================
+Using Sequential Stream
+=================================
+1 main
+2 main
+3 main
+4 main
+5 main
+6 main
+7 main
+8 main
+9 main
+10 main
+11 main
+12 main
+13 main
+14 main
+15 main
+16 main
+17 main
+18 main
+19 main
+20 main
+21 main
+22 main
+23 main
+24 main
+25 main
+26 main
+27 main
+28 main
+29 main
+30 main
+=================================
+Using Parallel Stream
+=================================
+20 main
+19 main
+22 main
+21 main
+17 main
+18 main
+5 ForkJoinPool.commonPool-worker-2
+16 main
+4 ForkJoinPool.commonPool-worker-2
+14 ForkJoinPool.commonPool-worker-3
+13 main
+15 ForkJoinPool.commonPool-worker-3
+25 main
+9 ForkJoinPool.commonPool-worker-3
+26 main
+11 ForkJoinPool.commonPool-worker-3
+28 ForkJoinPool.commonPool-worker-4
+30 ForkJoinPool.commonPool-worker-3
+29 ForkJoinPool.commonPool-worker-7
+2 ForkJoinPool.commonPool-worker-3
+1 ForkJoinPool.commonPool-worker-7
+3 ForkJoinPool.commonPool-worker-3
+6 ForkJoinPool.commonPool-worker-7
+23 ForkJoinPool.commonPool-worker-3
+7 ForkJoinPool.commonPool-worker-2
+10 ForkJoinPool.commonPool-worker-1
+12 ForkJoinPool.commonPool-worker-6
+8 ForkJoinPool.commonPool-worker-5
+24 main
+27 ForkJoinPool.commonPool-worker-4
 
-On Windows computer with 8 cores but 16 logical processors:
+### On Windows computer with 8 cores but 16 logical processors:
 =================================
 Using Sequential Stream
 =================================
@@ -326,10 +393,67 @@ Using Parallel Stream
 15 ForkJoinPool.commonPool-worker-10
 13 ForkJoinPool.commonPool-worker-1
 
+There is a relation between number of threads and number of cores.
+Running it with the Mac computer with 8 cores the number of threads never exeeded 8 threads, where the Windows computer spawned more than 8 threads but never exeeded 16, which would be in line with the number of logical proccesers it has.
+The amount of threads spawned vary, which we belive is because the body of work is so small/simple, that some threads finish and are ready for a new task before the maximum number of threads has been reached.
+
 ## Exercise 11.3.3
+
+```java
+intArrStream.forEach(s->
+    {
+        try {
+            Thread.sleep(250);
+            System.out.println(s+" "+Thread.currentThread().getName());
+        } catch (InterruptedException ex) {
+
+        }
+    }
+```
+
+=================================
+Using Sequential Stream
+=================================
+1 main
+2 main
+3 main
+4 main
+5 main
+6 main
+7 main
+8 main
+9 main
+10 main
+=================================
+Using Parallel Stream
+=================================
+2 ForkJoinPool.commonPool-worker-2
+6 ForkJoinPool.commonPool-worker-6
+9 ForkJoinPool.commonPool-worker-4
+4 ForkJoinPool.commonPool-worker-5
+7 main
+3 ForkJoinPool.commonPool-worker-1
+8 ForkJoinPool.commonPool-worker-7
+5 ForkJoinPool.commonPool-worker-3
+10 ForkJoinPool.commonPool-worker-6
+1 ForkJoinPool.commonPool-worker-2
+
+Increasing the body of work we see that we now spawn all the threads. So even with 10 elements on a computer with 8 cores 8 threads are still spawned.
+Now we reach the maximum amount of threads allowed by the computer.
 
 # Exercise 11.4
 
 ## Exericse 11.4.1
+```java
+source().filter(w -> w.length() > 5).sink()
+```
+\- In JavaStream the code will filter words and keep all words larger than 5 letters. This is a lazy operation, so execution begins when sink() is called. It pulls all words one by one in the stream and then if the word is more than 5 letters it absorbs it, otherwise it imediatly move on to next word.
+\- In RxJava it is pushed based. So when a user writes a word it is pushed down the chain, is filtered and then pushed to sink.
 
 ## Exericse 11.4.2
+```java
+source().filter(w -> w.length() > 5).sink();
+source().filter(w -> w.length() > 10).sink()
+```
+\- In JavaStream the code will read the source from begining, word by word, processing words longer than 5 letters until the file ends. Then it will again read the file from begining, now processing words longer than 10 letters
+\- In RXJava we have two subscriptions. The first will recieve words that have over five letters, the second will recieve words with more than 10 letters. So if the user writes a word, that word will be pushed to both filter chains at the same time.

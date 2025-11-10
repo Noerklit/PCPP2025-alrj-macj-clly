@@ -8,21 +8,33 @@ public class Java8ParallelStreamMain {
 		System.out.println("=================================");
 		System.out.println("Using Sequential Stream");
 		System.out.println("=================================");
-		int[] array= {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30};
+		int[] array= {1,2,3,4,5,6,7,8,9,10};
 		IntStream intArrStream=Arrays.stream(array);
 		intArrStream.forEach(s->
 		{
-			System.out.println(s+" "+Thread.currentThread().getName());
+            try {
+                Thread.sleep(250);
+                System.out.println(s+" "+Thread.currentThread().getName());
+            } catch (InterruptedException ex) {
+
+            }
 		}
-				);
+			);
 		System.out.println("=================================");
 		System.out.println("Using Parallel Stream");
 		System.out.println("=================================");
 		IntStream intParallelStream=Arrays.stream(array).parallel();
 		intParallelStream.forEach(s->
 		{
-			System.out.println(s+" "+Thread.currentThread().getName());
+            try {
+                Thread.sleep(250);
+                System.out.println(s+" "+Thread.currentThread().getName());
+            } catch (InterruptedException ex) {
+                
+            }
 		}
 				);
 	}
+
+
 }

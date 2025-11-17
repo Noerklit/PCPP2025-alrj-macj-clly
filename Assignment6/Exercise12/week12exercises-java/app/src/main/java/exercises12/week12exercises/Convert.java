@@ -6,18 +6,19 @@ package week12exercises;
 public class Convert{
 
   public String encode(int a1, int a2, int amount) {
-    return "" ;
+    return String.format("%d,%d,%d", a1,a2,amount);
   }
 
   public int getA1(String mes){
-    return Integer.parseInt(mes.substring(1, mes.indexOf(",")));
+    
+    return Integer.parseInt(mes.split("[,]")[0]);
   }
 
   public int getA2(String mes){
-    return 0 ;
+    return Integer.parseInt(mes.split("[,]")[1]);
   }
 
   public int getAmount(String mes){
-    return 0 ;
+    return Integer.parseInt(mes.split("[,]")[2]);
   }
 }

@@ -16,10 +16,10 @@ public class MobileApp{
 
   public MobileApp(){
     MessageSender ms= new MessageSender(host);
-    ms.sendMessage("{8081,8082!100}", port);
-    ms.sendMessage("{8081,8082!-50}", port);
-    ms.sendMessage("{8082,8081!17}", port);
+    ms.sendMessage("8081,8082,100", port);
+    ms.sendMessage("8081,8082,-50", port);
+    ms.sendMessage("8082,8081,17", port);
     //Stop bank
-    ms.sendMessage("{8081,8082!0}", port);
+    ms.sendMessage("8081,8082,0", port);
   }
 }

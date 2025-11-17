@@ -153,5 +153,115 @@ Based on the transactions made, the math adds up, so it is what we would expect.
 # 12.3
 ## 12.3.1
 
+```erlang
+-module(mobile_app).
+-include("records.hrl").
+
+-export([start/1, init/1]).
+
+-record(transaction, {from, to, amount}).
+-record(mobile_app_state, {bank}).
+
+start(BANK) ->
+    InitialState = #mobile_app_state{bank = BANK},
+    spawn(?MODULE, init, [InitialState]).
+
+init(InitialState) ->
+    loop(InitialState).
+
+loop(State) ->
+    receive
+        {payment_request, Request} -> 
+            From = Request#payment_request.from,
+            To = Request#payment_request.to,
+            Amount = Request#payment_request.amount,
+            State#mobile_app_state.bank ! {transaction, #transaction{from = From, to = To, amount = Amount}};
+        _ -> loop(State)
+    end.
+```
+The mobile app contains a state that does not change, which is just the bank that it should use. 
+It receives a message which has to have the format `{payment_request, #payment_request{from, to, amount}}`. If other messages are received then it just drops them.
+It essentially acts as a proxy for the bank, i.e. once it receives a transfer message it forwards it to the bank, in the correct format.
+
+## 12.3.2
+```erlang
+-module(bank).
+
+-export([start/0, init/0]).
+-record(transaction, {from, to, amount}).
+
+start() ->
+    spawn(?MODULE, init, []).
+
+init() ->
+    loop().
+
+transfer(FROM, TO, Amount) ->
+    FROM ! {deposit, -Amount},
+    TO ! {deposit, Amount}.
+
+loop() ->
+    receive
+        {transaction, Trans} -> 
+            Account1 = Trans#transaction.from,
+            Account2 = Trans#transaction.to,
+            Amount = Trans#transaction.amount,
+            transfer(Account1, Account2, Amount),
+            loop();
+        _ -> loop()
+    end.
+```
+The bank is stateless as the accounts themselves hold the current amount state. The bank just handles subtracting or adding deposits from one account to the other.
+It receives a message which has to have the format `{transaction, #transaction{from, to, amount}}`. If other messages are received then it just drops them.
+
+## 12.3.3
+```erlang
+-module(account).
+-export([start/0, init/1]).
+-record(account, {balance}).
+
+start() ->
+    spawn(?MODULE, init, [0]).
+
+init(InitialValue) ->
+    InitialState = #account{balance = InitialValue},
+    loop(InitialState).
+
+loop(State) ->
+    receive
+        {deposit, Amount} -> 
+            CurrentBalance = State#account.balance,
+            NewState = State#account{balance = CurrentBalance + Amount},
+            io:format("Hit with balance: ~p~n", [NewState#account.balance]),
+            loop(NewState);
+        _ -> loop(State)
+    end.
+```
+The account holds the current balance which is initialized to 0. Once a deposit hits the account the amount is added to that balance. 
+It expects messages in the format `{deposit, amount}`, if any other messages hits the account they're dropped. Better error handling could be made, but we could not be bothered.
+
+## 12.3.4
+
+```erlang
+-module(system_starter).
+-include("records.hrl").
+-export([system_start2/0, make_request/0]).
+
+
+system_start2() ->
+    A1 = account:start(),
+    A2 = account:start(),
+    B1 = bank:start(),
+    B2 = bank:start(),
+    MA1 = mobile_app:start(B1),
+    MA2 = mobile_app:start(B2).
+
+make_request(A1, A2, MA1, MA2) ->
+  Payment1 = #payment_request{from = A1, to = A2, amount = 100},
+  Payment2 = #payment_request{from = A1, to = A2, amount = -100},
+  MA1 ! {payment_request, Payment1},
+  MA2 ! {payment_request, Payment2}.
+
+```
 
 

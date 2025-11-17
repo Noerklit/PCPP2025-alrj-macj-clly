@@ -1,14 +1,20 @@
-% raup@itu.dk * 2024-11-14
-
 -module(account).
+-export([start/0, init/1]).
+-record(account, {balance}).
 
-%% export any necessary functions
-%% -export([...]).
+start() ->
+    spawn(?MODULE, init, [0]).
 
-%% define the account actor state
+init(InitialValue) ->
+    InitialState = #account{balance = InitialValue},
+    loop(InitialState).
 
-%% define a start(...) function that spawns an account actor
-
-%% define a init(...) function that initalizes the state of the account actor
-
-%% loop(...) function with the behavior of the account actor upon receiving messages
+loop(State) ->
+    receive
+        {deposit, Amount} -> 
+            CurrentBalance = State#account.balance,
+            NewState = State#account{balance = CurrentBalance + Amount},
+            io:format("Hit with balance: ~p~n", [NewState#account.balance]),
+            loop(NewState);
+        _ -> loop(State)
+    end.

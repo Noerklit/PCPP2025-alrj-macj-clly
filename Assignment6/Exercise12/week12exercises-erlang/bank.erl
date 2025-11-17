@@ -1,14 +1,26 @@
-% raup@itu.dk * 2024-11-14
-
 -module(bank).
 
-%% export any necessary functions
-%% -export([...]).
+-export([start/0, init/0]).
+-record(transaction, {from, to, amount}).
 
-%% define the bank actor state
+start() ->
+    spawn(?MODULE, init, []).
 
-%% define a start(...) function that spawns a bank actor
+init() ->
+    loop().
 
-%% define a init(...) function that initalizes the state of the bank actor
+transfer(FROM, TO, Amount) ->
+    FROM ! {deposit, -Amount},
+    TO ! {deposit, Amount}.
 
-%% loop(...) function with the behavior of the bank actor upon receiving messages
+loop() ->
+    receive
+        {transaction, Trans} -> 
+            Account1 = Trans#transaction.from,
+            Account2 = Trans#transaction.to,
+            Amount = Trans#transaction.amount,
+            transfer(Account1, Account2, Amount),
+            loop();
+        _ -> loop()
+    end.
+

@@ -1,14 +1,25 @@
-% raup@itu.dk * 2024-11-14
-
 -module(mobile_app).
+-include("records.hrl").
 
-%% export any necessary functions
-%% -export([...]).
+-export([start/1, init/1]).
 
-%% define the mobile app actor state
+-record(transaction, {from, to, amount}).
+-record(mobile_app_state, {bank}).
 
-%% define a start(...) function that spawns a mobile app actor
+start(BANK) ->
+    InitialState = #mobile_app_state{bank = BANK},
+    spawn(?MODULE, init, [InitialState]).
 
-%% define a init(...) function that initalizes the state of the mobile app actor
+init(InitialState) ->
+    loop(InitialState).
 
-%% loop(...) function with the behavior of the mobile app actor upon receiving messages
+loop(State) ->
+    receive
+        {payment_request, Request} -> 
+            From = Request#payment_request.from,
+            To = Request#payment_request.to,
+            Amount = Request#payment_request.amount,
+            State#mobile_app_state.bank ! {transaction, #transaction{from = From, to = To, amount = Amount}};
+        _ -> loop(State)
+    end.
+

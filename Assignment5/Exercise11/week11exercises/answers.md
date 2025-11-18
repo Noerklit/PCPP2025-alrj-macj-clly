@@ -447,13 +447,15 @@ Now we reach the maximum amount of threads allowed by the computer.
 ```java
 source().filter(w -> w.length() > 5).sink()
 ```
-\- In JavaStream the code will filter words and keep all words larger than 5 letters. This is a lazy operation, so execution begins when sink() is called. It pulls all words one by one in the stream and then if the word is more than 5 letters it absorbs it, otherwise it imediatly move on to next word.
-\- In RxJava it is pushed based. So when a user writes a word it is pushed down the chain, is filtered and then pushed to sink.
+
+- In JavaStream the code will filter words and keep all words larger than 5 letters. This is a lazy operation, so execution begins when sink() is called. It pulls all words one by one in the stream and then if the word is more than 5 letters it absorbs it, otherwise it imediatly move on to next word.
+- In RxJava it is pushed based. So when a user writes a word it is pushed down the chain, is filtered and then pushed to sink.
 
 ## Exericse 11.4.2
 ```java
 source().filter(w -> w.length() > 5).sink();
 source().filter(w -> w.length() > 10).sink()
 ```
-\- In JavaStream the code will read the source from begining, word by word, processing words longer than 5 letters until the file ends. Then it will again read the file from begining, now processing words longer than 10 letters
-\- In RXJava we have two subscriptions. The first will recieve words that have over five letters, the second will recieve words with more than 10 letters. So if the user writes a word, that word will be pushed to both filter chains at the same time.
+
+- In JavaStream the code will read the source from begining, word by word, processing words longer than 5 letters until the file ends. Then it will again read the file from begining, now processing words longer than 10 letters
+- In RXJava we have two subscriptions. The first will recieve words that have over five letters, the second will recieve words with more than 10 letters. So if the user writes a word, that word will be pushed to both filter chains at the same time.

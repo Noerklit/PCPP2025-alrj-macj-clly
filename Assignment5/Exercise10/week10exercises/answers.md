@@ -101,29 +101,259 @@ This is probably becasue countParallelN uses an AtomicLong to keep track of prim
 In countParallelN the threads have to wait to be able to increment the result, therefore there we believe that the difference in time comes from this waiting.
 
 ## 10.3.2
-We expected that using executors would make it faster, but here it is clearly not faster.
-We probably need to change implemtation.
+```java
+public class TestCountPrimesThreads {
 
-insert code
+    public static void main(String[] args) {
+        new TestCountPrimesThreads();
+    }
 
-ask TA/Albert \
-countSequential                 2618662,9 ns   22301,92        128\
-countParallelN  1               2692522,0 ns   14464,83        128\
-countParallelNLocal  1          2702471,4 ns   10655,69        128\
-countParallelN  2               1846013,3 ns   19001,39        256\
-countParallelNLocal  2          1772262,3 ns    4884,55        256\
-countParallelN  4               1371633,1 ns   10373,22        256\
-countParallelNLocal  4          1176240,6 ns    8402,95        256\
-countParallelN  8               1251309,3 ns   23894,60        256\
-countParallelNLocal  8          1011713,8 ns   12482,61        256\
-countParallelN 16               1128675,0 ns   17671,69        256\
-countParallelNLocal 16           894046,1 ns    9447,17        512
+    public TestCountPrimesThreads() {
+        final int range = 100_000;
+        Benchmark.Mark7("countSequential", i -> countSequential(range));
+        Benchmark.Mark7("countParallelNForkJoining",
+                i -> countParallelNForkJoin(range));
+        for (int c = 1; c <= 16; c = 2 * c) {
+            final int threadCount = c;
+            Benchmark.Mark7(String.format("countParallelNFixedThreadPool %2d", threadCount),
+                    i -> countParallelNFixedThreadPool(range, threadCount));
+            Benchmark.Mark7(String.format("countParallelNManualThreads %2d", threadCount),
+                    i -> countParallelNManualThreads(range, threadCount));
+            Benchmark.Mark7(String.format("countParallelNForkJoinPool %2d", threadCount),
+                    i -> countParallelNLocal(range, threadCount));
+
+        }
+    }
+
+    private static boolean isPrime(int n) {
+        int k = 2;
+        while (k * k <= n && n % k != 0) {
+            k++;
+        }
+        return n >= 2 && k * k > n;
+    }
+
+    // Sequential solution
+    private static long countSequential(int range) {
+        long count = 0;
+        final int from = 0, to = range;
+        for (int i = from; i < to; i++) {
+            if (isPrime(i)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static long countParallelNForkJoin(int range) {
+        final ForkJoinPool pool = new ForkJoinPool();
+        final ForkCountPrimes countPrimes = new ForkCountPrimes(0, range);
+        final long res = pool.invoke(countPrimes);
+        pool.shutdown();
+        return res;
+    }
+
+    // General parallel solution, using multiple threads
+    private static long countParallelNFixedThreadPool(int range, int threadCount) {
+        final ExecutorService pool = Executors.newFixedThreadPool(threadCount);
+
+        final AtomicLong lc = new AtomicLong(0);
+        final int perThread = range / threadCount;
+
+        for (int t = 0; t < threadCount; t++) {
+            final int from = perThread * t,
+                    to = (t + 1 == threadCount) ? range : perThread * (t + 1);
+            pool.submit(
+                    () -> {
+                        for (int i = from; i < to; i++) {
+                            if (isPrime(i)) {
+                                lc.incrementAndGet();
+                            }
+                        }
+                    }
+            );
+        }
+
+        pool.shutdown();
+        try {
+            if (pool.awaitTermination(20, TimeUnit.SECONDS)) {
+                // System.out.println("All tasks completed");
+            } else {
+                System.out.println("Timeout elapsed before termination");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return lc.get();
+    }
+
+    private static long countParallelNManualThreads(int range, int threadCount) {
+        final AtomicLong lc = new AtomicLong(0);
+        final int perThread = range / threadCount;
+        final CyclicBarrier barrier = new CyclicBarrier(threadCount + 1);
+        Thread[] threads = new Thread[threadCount];
+        for (int t = 0; t < threadCount; t++) {
+            final int from = perThread * t,
+                    to = (t + 1 == threadCount) ? range : perThread * (t + 1);
+            threads[t] = new Thread(() -> {
+                for (int i = from; i < to; i++) {
+                    if (isPrime(i)) {
+                        lc.incrementAndGet();
+                    }
+                }
+                try {
+                    barrier.await();
+                } catch (InterruptedException | BrokenBarrierException ex) {
+                }
+            });
+        }
+        for (int t = 0; t < threadCount; t++) {
+            threads[t].start();
+        }
+        try {
+            barrier.await();
+        } catch (InterruptedException | BrokenBarrierException ex) {
+        }
+
+        return lc.get();
+    }
+
+    // General parallel solution, using multiple threads
+    private static long countParallelNLocal(int range, int threadCount) {
+        final ExecutorService pool = new ForkJoinPool();
+        final long[] results = new long[threadCount];
+
+        final int perThread = range / threadCount;
+
+        for (int t = 0; t < threadCount; t++) {
+            final int from = perThread * t,
+                    to = (t + 1 == threadCount) ? range : perThread * (t + 1);
+            final int threadNo = t;
+            pool.submit(
+                    () -> {
+                        int count = 0;
+                        for (int i = from; i < to; i++) {
+                            if (isPrime(i)) {
+                                count++;
+                            }
+                        }
+                        results[threadNo] = count;
+                    }
+            );
+        }
+
+        pool.shutdown();
+        try {
+            if (pool.awaitTermination(20, TimeUnit.SECONDS)) {
+                // System.out.println("All tasks completed");
+            } else {
+                System.out.println("Timeout elapsed before termination");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        long result = 0;
+        for (int t = 0; t < threadCount; t++) {
+            result += results[t];
+        }
+        return result;
+    }
+}
+```
+
+countSequential                         2581502.6 ns    4213.09       128\
+countParallelNForkJoining               842467.5 ns     5980.17       512\
+countParallelNFixedThreadPool  1        2723337.7 ns    4177.04       128\
+countParallelNManualThreads  1          2683605.8 ns    4918.77       128\
+countParallelNForkJoinPool  1           2694634.5 ns    5462.66       128\
+countParallelNFixedThreadPool  2        1730468.2 ns    10380.73      256\
+countParallelNManualThreads  2          1753697.2 ns    4735.94       256\
+countParallelNForkJoinPool  2           1783155.5 ns    10551.51      256\
+countParallelNFixedThreadPool  4        1117592.0 ns    10461.73      256\
+countParallelNManualThreads  4          1294041.3 ns    5003.93       256\
+countParallelNForkJoinPool  4           1130500.3 ns    3658.62       256\
+countParallelNFixedThreadPool  8        903272.5 ns     7640.69       512\
+countParallelNManualThreads  8          985640.8 ns     15157.68      256\
+countParallelNForkJoinPool  8           913773.7 ns     4052.37       512\
+countParallelNFixedThreadPool 16        952547.5 ns     6028.67       512\
+countParallelNManualThreads 16          1071193.3 ns    5098.17       256\
+countParallelNForkJoinPool 16           818046.7 ns     7355.97       512
 
 # 10.4
 ## 10.4.1
+```java
+package exercises10;
+class TestCASLockHistogram {
+  public static void main(String[] args) {
+    int span = 30;
 
-Is this how we are supposed to implement it?
-Insert code.
+    // Create an object `histogramCAS` with your Histogram CAS implementation from week05
+    Histogram casHis = new CasHistogram(span);
+
+    // Create an object `histogramLock` using the class in the file HistogramLocks
+    Histogram lockHis = new HistogramLocks(span);
+    
+    int noThreads= 16;
+    int range= 100_000;	
+
+    for (int i= 1; i < noThreads; i++) {
+      int threadCount= i;
+      // Benchmark.Mark7( ... using a monitor
+        Benchmark.Mark7(String.format("countParallel Lock %2d", threadCount), 
+		      p -> countParallel(range, threadCount, lockHis));
+    }
+
+    for (int i= 1; i < noThreads; i++) {
+      int threadCount= i;
+      // Benchmark.Mark7( ... using CAS
+      Benchmark.Mark7(String.format("countParallel CAS %2d", threadCount), 
+		      p -> countParallel(range, threadCount, casHis));
+    }
+  }
+  
+  // Function to count the prime factors of a number `p`
+  private static int countFactors(int p) {
+    if (p < 2) return 0;
+    int factorCount = 1, k = 2;
+    while (p >= k * k) {
+      if (p % k == 0) {
+        factorCount++;
+        p= p/k;
+      } else 
+        k= k+1;
+    }
+    return factorCount;
+  }
+
+  // Parallel execution of counting the number of primes for numbers in `range`
+    private static int countParallel(int range, int threadCount, Histogram h) {
+    final int perThread= range / threadCount;
+    Thread[] threads= new Thread[threadCount];
+    for (int t=0; t<threadCount; t= t+1) {
+      final int from= perThread * t, 
+        to= (t+1==threadCount) ? range : perThread * (t+1); 
+      threads[t]= new Thread( () -> {
+          for (int i= from; i<to; i++) h.increment(countFactors(i));
+                
+      });
+    } 
+    for (int t= 0; t<threadCount; t= t+1) 
+      threads[t].start();
+    try {
+      for (int t= 0; t<threadCount; t= t+1) 
+        threads[t].join();
+    } catch (InterruptedException exn) { }
+    return 0;
+  }
+    
+  // Auxiliary method to print the histogram data
+  public static void dump(Histogram histogram) {
+    for (int bin= 0; bin < histogram.getSpan(); bin= bin+1) {
+      System.out.printf("%4d: %9d%n", bin, histogram.getCount(bin));
+    }
+  }
+}
+```
 
 We would expect CAS to be faster than using locks.
 

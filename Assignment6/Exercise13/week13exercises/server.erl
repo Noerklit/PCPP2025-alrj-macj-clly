@@ -16,10 +16,8 @@ start(MinWorkers, MaxWorkers) ->
 % 3. Initialization
 init(MinWorkers, MaxWorkers) ->
     % Spawn our fixed amount of workers, based on lecture code?
-    Workers = lists:map(fun (_) -> worker:start(self()) end,
-                            lists:seq(0, MinWorkers-1)),
-    InitialState = #serverState{idle_workers = Workers, busy_workers = [],pending_tasks = [], minWorkers = MinWorkers, maxWorkers = MaxWorkers},
-    loop(InitialState).
+    InitialState = #serverState{idle_workers = [], busy_workers = [],pending_tasks = [], minWorkers = MinWorkers, maxWorkers = MaxWorkers},
+    loop(spawn_workers(InitialState, MinWorkers)).
 
 
 % 4. Behavior upon receiving messages
@@ -32,8 +30,16 @@ loop(State) ->
         {work_done, WorkerPID} ->
             IdleWorkers = State#serverState.idle_workers,
             BusyWorkers = State#serverState.busy_workers,
-            NewState = State#serverState{idle_workers = [WorkerPID | IdleWorkers], busy_workers = lists:delete(WorkerPID, BusyWorkers)},
+            NewState = State#serverState{
+                         idle_workers = [WorkerPID | IdleWorkers],
+                         busy_workers = lists:delete(WorkerPID, BusyWorkers)},
             loop(handle_tasks(eliminate_workers(NewState),[]));
+        {'DOWN',_MonitorRef, process, _Pid, normal} ->
+          loop(State);
+        {'DOWN', _MonitorRef, process, Pid, Reason} ->
+          io:format("Worker with PID ~p crashed with reason ~p~n",[Pid, Reason]),
+          NewState = remove_pid(State, Pid),
+          loop(spawn_worker(NewState));
         _ -> 
           loop(State)
     end.
@@ -42,6 +48,10 @@ loop(State) ->
 
 % Private functions (to be used, e.g., by message handlers)
 %
+
+remove_pid(State = #serverState{idle_workers = IdleWorkers, busy_workers = BusyWorkers}, Pid) ->
+  State#serverState{idle_workers = lists:delete(Pid, IdleWorkers), busy_workers = lists:delete(Pid, BusyWorkers)}.
+
 print_workers(#serverState{idle_workers = IdleWorkers, busy_workers = BusyWorkers}) ->
   io:format("Number of workers: ~p~n", [erlang:length(IdleWorkers++BusyWorkers)]).
 
@@ -61,10 +71,19 @@ eliminate_workers(State = #serverState{idle_workers = [IdleWorker | IdleWorkers]
       State
   end.
 
+spawn_workers(State, N) ->
+  if 
+    N < 0 -> State;
+    true -> 
+      spawn_workers(spawn_worker(State), N-1)
+  end.
+
 spawn_worker(
   State = #serverState{
              idle_workers = IdleWorkers}) ->
-    State#serverState{idle_workers = [worker:start(self()) | IdleWorkers]}.
+    Pid = worker:start(self()),
+    erlang:monitor(process, Pid),
+    State#serverState{idle_workers = [Pid | IdleWorkers]}.
 
 handle_tasks(
     State = #serverState{

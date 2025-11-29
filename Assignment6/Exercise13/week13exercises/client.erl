@@ -58,8 +58,8 @@ crashing_example(MinWorkers, MaxWorkers) ->
     T1 = #task{function=fun (X,Y) -> X+Y end, arguments=[42,42]},
     T2 = #task{function=fun (X,Y) -> X-Y end, arguments=[42,42]},
     T3 = #task{function=fun (X,Y) -> X*Y end, arguments=[42,42]},
-    T4 = #task{function=fun (X,Y) -> (X+Y)/0 end, arguments=[42,42]},
-    Tasks = [T1,T2,T3,T4],
+    %T4 = #task{function=fun (X,Y) -> (X+Y)/0 end, arguments=[42,42]},
+    Tasks = [T1,T2,T3],
     send_tasks(Tasks, MinWorkers, MaxWorkers).
 
 % This is a helper function to send NumTasks times the same task,

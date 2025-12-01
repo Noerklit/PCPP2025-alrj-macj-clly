@@ -34,3 +34,6 @@ Assignment4/Exercise9/week09exercises/app/.classpath
 Assignment4/Exercise9/week09exercises/app/.project
 Assignment4/Exercise9/week09exercises/.project
 Assignment3/Exercise5/week05exercises/app/.metals
+
+# erlang compile files
+*.beam

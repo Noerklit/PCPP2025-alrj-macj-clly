@@ -263,5 +263,35 @@ make_request(A1, A2, MA1, MA2) ->
   MA2 ! {payment_request, Payment2}.
 
 ```
+## 12.3.5
+```erlang
+send_N_requests(N, BANK, From, To) -> 
+    case N of
+        _ when N =< 0 -> 0;
+        _ -> 
+            BANK ! {transaction, #transaction{from = From, to = To, amount = 1}},
+            send_N_requests(N-1, BANK, From, To)
+    end.
+```
+## 12.3.6
+```erlang
+loop(State) ->
+    receive
+        {deposit, Amount} -> 
+            CurrentBalance = State#account.balance,
+            NewState = State#account{balance = CurrentBalance + Amount},
+            loop(NewState);
+        print_balance -> 
+            io:format("Account with id ~p has balance ~p~n", [State#account.accountId, State#account.balance]),
+            loop(State);
+        _ -> loop(State)
+    end.
+```
 
+(a) 0
+(b) No since each process sends the signals asynchronously there are many different balances that could be printed. It depends whether the deposit or the print_balance hits the message queue first. Since the message queue is FIFO it will just handle the messages in the order they're received. So if 3 deposits come before a print, then it will print the balance 3 or -3 respectivly.
+(c) There are no guarantees of the possible balances that could be printed only that for each account it is in the range [-100, 0] or [0, 100]. This is because there is a race condition between when the deposit messages reach the account and the print message reaches the account.
+
+## 12.3.7
+No data races cannot occur since the account actor is running sequentially inside its own process. This means that there is no shared memory.
 

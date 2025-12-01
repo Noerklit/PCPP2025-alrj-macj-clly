@@ -4,8 +4,8 @@
 
 
 system_start2() ->
-    A1 = account:start(),
-    A2 = account:start(),
+    A1 = account:start(1),
+    A2 = account:start(2),
     B1 = bank:start(),
     B2 = bank:start(),
     MA1 = mobile_app:start(B1),

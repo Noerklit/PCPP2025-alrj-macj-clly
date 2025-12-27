@@ -11,11 +11,11 @@ public class CountingThreads {
         CountingThread t1 = new CountingThread(); 
         CountingThread t2 = new CountingThread();
          
-        t1.start(); // (start(t1)) po
-        t2.start(); // (start(t2)) po
+        t1.start(); // (start(t1)) sync
+        t2.start(); // (start(t2)) sync
 
-        t1.join(); // (join(t1)) po
-        t2.join(); // (join(t2)) po
+        t1.join(); // (join(t1)) sync
+        t2.join(); // (join(t2)) sync
         
         System.out.println("count="+count); // (3) Variable access/read
     }
@@ -35,19 +35,26 @@ public class CountingThreads {
 ```
 
 ### 2
+#### Define the happens-before order set containing action pairs obtained from the program order rule.
 $$
-HB^m_{po} = m(init(count)) \rightarrow m(start(t1)) \\
+HB^m_{po} = \{m(init(count)) \rightarrow m(start(t1)) \\
 \rightarrow m(start(t2)) \rightarrow m(join(t1)) \\
-\rightarrow m(join(t2)) \rightarrow m(3)
+\rightarrow m(join(t2)) \rightarrow m(3)\}
 $$
 
 $$
-HB^{t1}_{po} = t1(1)  \rightarrow t1(2)
+HB^{t1}_{po} = \{t1(1)  \rightarrow t1(2)\}
 $$
 
 $$
-HB^{t2}_{po} = t2(1)  \rightarrow t2(2)
+HB^{t2}_{po} = \{t2(1)  \rightarrow t2(2)\}
 $$
+
+$$
+HB_{po}= HB^m_{po}\cup HB^{t1}_{po}\cup HB^{t2}_{po}
+$$
+#### Is this set the same for all possible program executions?
+Yes the set is the same as all actions pairs have been obtained using the program order rule.
 
 HB1 will result in count = 2
 $$
@@ -73,15 +80,34 @@ HB6 will result in count = 1
 $$
 HB^{6} = t2(1)  \rightarrow t1(1) \rightarrow t1(2)  \rightarrow t2(2)
 $$
-This set is not the same for all possible program execusions. As can be seen from the example above.
 
 The set is the same, but the outcome is different. The sets are the same as seen in the first part of the assignment.
 
 ### 3
+#### Define the happens-before order set containing action pairs obtained from the thread start rule and the thread termination rule.
+$$
+HB^{t1}_{sync}=\{
+m(start(t1)) \rightarrow t1(1),
+t1(2) \rightarrow m(join(t1))
+\}
+$$
+$$
+HB^{t2}_{sync}=\{
+m(start(t2)) \rightarrow t2(1),
+t2(2) \rightarrow m(join(t2))
+\}
+$$
+$$
+HB_{sync}= HB^{t1}_{sync}\cup HB^{t1}_{sync}
+$$
+#### Is this set the same for all possible program executions?
+Yes the set derived from the thread start and termination rule remains the same for all program executions.
+
+#### Old answer
 $$
 HB^1_{init} = \\
-m(start(t1)) \rightarrow t1(1) \rightarrow t1(2) \rightarrow\\
-m(start(t2)) \rightarrow t2(1) \rightarrow t2(2) \\
+m(start(t1)) \rightarrow t1(1) \rightarrow\\
+m(start(t2)) \rightarrow t2(1) \\
 $$
 $$
 HB^2_{init} = \\
@@ -99,15 +125,132 @@ $$
 HB = {m(start(t1)) \rightarrow  m(start(t2)) \rightarrow m(join(t1))\rightarrow m(join(t2)) }
 $$
 
-### 4
+### 4 - Define a set of all possible synchronization orders for this program
+
+$$
+S=\{\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t1(1),
+        t1(2),
+        t2(1),
+        t2(2),
+        m(join(t1)),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t2(1),
+        t2(2),
+        t1(1),
+        t1(2),
+        m(join(t1)),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t2(1),
+        t1(1),
+        t2(2),
+        t1(2),
+        m(join(t1)),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t1(1),
+        t2(1),
+        t1(2),
+        t2(2),
+        m(join(t1)),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t1(1),
+        t2(1),
+        t1(2),
+        m(join(t1)),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t1(1),
+        t1(2),
+        t2(1),
+        m(join(t1)),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        m(start(t2)),
+        t1(1),
+        t1(2),
+        m(join(t1)),
+        t2(1),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        t1(1),
+        m(start(t2)),
+        t1(2),
+        m(join(t1)),
+        t2(1),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        t1(1),
+        t1(2),
+        m(start(t2)),
+        m(join(t1)),
+        t2(1),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        t1(1),
+        t1(2),
+        m(start(t2)),
+        t2(1),
+        m(join(t1)),
+        t2(2),
+        m(join(t2))
+    ),\\
+    (
+        m(start(t1)),
+        t1(1),
+        t1(2),
+        m(start(t2)),
+        t2(1),
+        t2(2),
+        m(join(t1)),
+        m(join(t2))
+    ),\\
+\}
+$$
+
+#### Old answer
 $$
 m(start(t1)) \rightarrow  m(start(t2)) \rightarrow m(join(t1))\rightarrow m(join(t2))
 $$
 
-### 5
-There is a race between t1(1) and t2(2), and t2(1) and t1(2) as they both use count and there is no action pairs relating t1 and t2. As can be seen from the HB relations in the above exercieses.
+### 5 - Show, using the Java memory model, that this program contains data races.
+There is a data race between t1(1) and t2(2), and t2(1) and t1(2) as they both use count and there is no action pairs relating t1 and t2. As can be seen from the HB relations in the above exercieses.
 
-### 6
+### 6 - Use a lock to eliminate the data races in the program
 ```java
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -157,7 +300,11 @@ HB = m(init(count)) \rightarrow m(start(t1)) \\
 $$
 There is another execution order, that is if t2 aquires the lock before t1.
 
-### 7
+Since the threads race to aquire the lock there are a couple of synchronization orders, but no race conditions nor data races, as
+1. Concurrent access to count is no longer allowed.
+2. The output of the program does not depend on the interleavings.
+
+### 7 - Show, using the Java memory model, that your updated program (3.1.6) does not contain data races
 $$
 HB^1 = t1(2) \xrightarrow{(po)}  t1(3) \xrightarrow{(po)}  t1(4) \\
 \xrightarrow{(sync)}  t2(1) \xrightarrow{(po)}  t2(2) \xrightarrow{(po)}  t2(3)
@@ -166,17 +313,19 @@ $$
 HB^2 = t2(2) \xrightarrow{(po)}  t2(3) \xrightarrow{(po)}  t2(4) \\
 \xrightarrow{(sync)}  t1(1) \xrightarrow{(po)}  t1(2) \xrightarrow{(po)}  t1(3)
 $$
-Due to the monitor rule, no data reces are present as either t1 or t2 has to wait for the other thread to unlock.
+Due to the monitor rule, no data races are present as either t1 or t2 has to wait for the other thread to unlock.
 
-### 8
+### 8 - Consider again the program without the lock, but defining x as volatile
 If count is volatile it would be data race free, but not race condition free. Each thread would still be able to read count at the same time. The threads can read count and write to the temp value at the same time. If there has been written to count volatile ensures us we get the right value of count.
 $$
 HB = t1(1)  \rightarrow t2(1) \rightarrow t1(2)  \rightarrow t2(2)
 $$
 
+More formally, the volatile rule states that any writes to a volatile variable happends before a subsequent read. This means that any execution of this program is ordered by happens before, this would not be the case if volatile was not present.
+
 ## 3.2
 
-### 1
+### 1 - Show, using the Java memory model, that the program is not correctly synchronized
 ```java
     public class StringSet {
 
@@ -216,7 +365,7 @@ HB^{t2}_{po} = t2(6) \rightarrow t2(4)
 $$
 The above denotes the happens before for the program and its threads. There is a data race between t1(2) and t2(4), since there are no action pairs that relate them, ergo there is not Happens-Before set that contains them both. That means they are conflicting actions.
 
-### 2
+### 2 - Add the modifier synchronized to the definition 
 ```java
     public class StringSet {
 
@@ -247,17 +396,20 @@ The above denotes the happens before for the program and its threads. There is a
         t1.start(); //
         t2.start(); //
 ```
+#### Show, using the JMM, whether the program is correctly synchronized
 $$
 HB = m(init(s)) \rightarrow m(start(t1)) \rightarrow m(start(t2)) \rightarrow \\ 
 t1(5) \rightarrow t1(init(ret) ) \rightarrow t1(1) \rightarrow t1(2) \rightarrow t1(3) \\ 
 \rightarrow t2(6) \rightarrow t2(4) \\
 $$
 
-The class is correctly synchronized, becasue to be correctly syncronized means that the program has to be data race free. With both methods being synchronized the program is data race free. Beceause we are using an intrinsic lock which means that both find or findOrAdd cannot run at the same time. Because of the introduction of the synchronized keyword, i.e lock to the find method, the monitor rule applies, results in us not having the conflicting action pair t1(2) and t2(4) no longer occurring at the same time, eliminating the data race. Note that a race condition is still present, in terms of which threads, reaches the lock first. 
+The class is correctly synchronized, becasue to be correctly syncronized means that the program has to be data race free. With both methods being synchronized the program is data race free. Because we are using an intrinsic lock meaning that both find or findOrAdd cannot run at the same time. Because of the introduction of the synchronized keyword, i.e lock to the find method, the monitor rule applies, results in us not having the conflicting action pair t1(2) and t2(4) no longer occurring at the same time, eliminating the data race. Note that a race condition is still present, in terms of which threads, reaches the lock first. 
 
 
 ## 3.3
-### 1
+### 1 - What pair of actions must be ordered by happens-before to prevent infinite executions?
+The pair of actions that must be ordered by the happens-before is m(5) and t1(2). m(5) (the write to x) must happen before t1(2) (the read to x), in order to prevent the infinite loop.
+### Old answer
 ``` Java
     int x; // init(x)
 
@@ -279,7 +431,7 @@ The pair of actions that must be ordered by the happens-before is m(5) and t1(2)
 
 The pair of actions that must be ordered by the happens-before is m(5) and start(t1). m(5) (the write to x) must happen before start(t1) (Spawning of t1), in order to prevent the infinite loop.
 
-### 2
+### 2 - Show, using the JMM, that the pair of actions you identified are not ordred by happens before in all executions of the program
 - Program order rule: As action t1(2) and action m(5) are not executed by the same thread, this program does adhere to the program order rule. 
 - Monitor rule: No locks exists in the program, therefore it does not adhere to the monitor rule.
 - Volatile rule: The variable x is not marked as volatile, this program does not adhere to the volatile rule.

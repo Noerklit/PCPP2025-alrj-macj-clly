@@ -37,3 +37,6 @@ Assignment3/Exercise5/week05exercises/app/.metals
 
 # erlang compile files
 *.beam
+
+
+*.metals

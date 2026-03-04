@@ -1,0 +1,1 @@
+-record(payment_request, {from, to, amount}).

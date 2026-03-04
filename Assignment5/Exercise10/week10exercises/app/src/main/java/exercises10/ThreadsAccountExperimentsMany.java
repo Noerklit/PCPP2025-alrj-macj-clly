@@ -40,18 +40,6 @@ public class ThreadsAccountExperimentsMany {
         System.out.println("Timeout elapsed before termination");
       }
     } catch (InterruptedException e) { e.printStackTrace();}
-    // for( int i = 0; i<NO_THREADS; i++){
-    // try{ (threads[i] = new Thread( () -> doNTransactions(NO_TRANSACTION)
-    // )).start();}
-    // catch(Error ex){
-    // System.out.println("At i = " + i + " I got error: " + ex);
-    // System.exit(0);
-    // }
-    // }
-    // for( int i = 0; i<NO_THREADS; i++){
-    // try {threads[i].join();} catch(Exception dummy){};
-    // }
-    // Loop below is just so it takes long enough for us to actually see a print statement from doTransaction
   }
 
   private static void doNTransactions(int noTransactions) {

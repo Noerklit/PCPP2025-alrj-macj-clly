@@ -1,0 +1,155 @@
+// For week 6
+// raup@itu.dk * 2024-09-22
+package exercises06;
+
+// Very likely you will need some imports here
+import java.util.concurrent.atomic.AtomicReference;
+
+class ReadWriteCASLock implements SimpleRWTryLockInterface {
+
+    private final AtomicReference<Holders> holders = new AtomicReference<>();
+
+    public boolean readerTryLock() {
+        ReaderList rl = null;
+        Holders holder;
+        do {
+            holder = holders.get(); //Get current state of lock
+            if (holder != null) { // If anyone has the lock
+                if (holder.isWriterLock()) { 
+                    return false; // If it's a writer that has the lock do nothing
+                }
+                rl = (ReaderList) holder; // Reference to current head of reader list
+            }
+            rl = new ReaderList(rl); // Make new node that adds current thread to head of list
+        } while (!holders.compareAndSet(holder, rl)); //Try to replace old list with new list, fails if another thread changed it first
+        return true;
+    }
+
+    public void readerUnlock() throws RuntimeException {
+        ReaderList newRl;
+        Holders holder;
+        do {
+            holder = holders.get();
+            if (holder == null || !holder.isReader()) {
+                throw new RuntimeException();
+            }
+            newRl = ((ReaderList) holder).CloneRemoved();
+        } while (!holders.compareAndSet(holder, newRl));
+    }
+
+    public boolean writerTryLock() {
+        Holders writer = new Writer();
+        return holders.compareAndSet(null, writer);
+    }
+
+    @Override
+    public void writerUnlock() throws RuntimeException {
+        Holders holder;
+
+        holder = holders.get();
+        if (!holder.isWriter()) {
+            throw new RuntimeException();
+        }
+        holders.compareAndSet(holder, null);
+    }
+
+    // Challenging 5.2.7: You may add new methods
+    private static abstract class Holders {
+
+        public abstract boolean isReader();
+
+        public abstract boolean isWriter();
+
+        public abstract boolean isReaderList();
+
+        public abstract boolean isWriterLock();
+    }
+
+    private static class ReaderList extends Holders {
+
+        private final Thread thread;
+        private final ReaderList next;
+
+        // TODO: Constructor
+        public ReaderList(ReaderList next) {
+            thread = Thread.currentThread();
+            this.next = next;
+        }
+
+        private ReaderList(Thread thread, ReaderList next) {
+            this.thread = thread;
+            this.next = next;
+        }
+
+        public ReaderList CloneRemoved() {
+            Thread t = Thread.currentThread();
+
+            if (thread == t && next == null) {
+                return null;
+            }
+            if (thread == t) {
+                return next.CloneRemoved();
+            }
+            if (next == null) {
+                return new ReaderList(thread, null);
+            }
+            return new ReaderList(thread, next.CloneRemoved());
+        }
+
+        @Override
+        public boolean isReader() {
+            Thread curr = Thread.currentThread();
+            if (curr == thread) {
+                return true;
+            }
+            if (next == null) {
+                return false;
+            }
+            return next.isReader();
+        }
+
+        @Override
+        public boolean isWriter() {
+            return !isReader();
+        }
+
+        @Override
+        public boolean isReaderList() {
+            return true;
+        }
+
+        @Override
+        public boolean isWriterLock() {
+            return false;
+        }
+    }
+
+    private static class Writer extends Holders {
+
+        public final Thread thread;
+
+        public Writer() {
+            thread = Thread.currentThread();
+        }
+
+        @Override
+        public boolean isReader() {
+            return !isWriter();
+        }
+
+        @Override
+        public boolean isWriter() {
+            return thread == Thread.currentThread();
+        }
+
+        @Override
+        public boolean isReaderList() {
+            return false;
+        }
+
+        @Override
+        public boolean isWriterLock() {
+            return true;
+        }
+    }
+}

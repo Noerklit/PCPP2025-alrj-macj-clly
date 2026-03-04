@@ -150,7 +150,7 @@ Account2; 33
 
 Based on the transactions made, the math adds up, so it is what we would expect.
 
-# 12.3
+# 12.3  
 ## 12.3.1
 
 ```erlang
